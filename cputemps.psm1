@@ -5,8 +5,8 @@ function New-CpuTempChart {
         [int]$Width = 100
     )
     process {
-        $min = [math]::Floor(($_.data.Temp | Measure-Object -Minimum).Minimum)
-        $max = [math]::Ceiling(($_.data.Temp | Measure-Object -Maximum).Maximum)
+        $min = ($_.data.Temp | Measure-Object -Minimum).Minimum
+        $max = ($_.data.Temp | Measure-Object -Maximum).Maximum
         Write-Host $_.Title
         $_.data | ForEach-Object {
             $len = [math]::Round((($_.Temp - $min) / $(if (($max - $min) -eq 0) { 1 } else { $max - $min })) * $Width)

@@ -105,3 +105,21 @@ Filter Set-OrderByTemp {
         $_
     }
 }
+
+Function Get-HostData {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline)][ValidateScript({ Test-Path $_ })][string]$Path,
+        [Parameter()][int]$Last=1  # Per discovered host
+    ) 
+    # Will recurse down each discovered host directory and fetch the paths for the latest X csv files.
+    # Expected dir structure is:
+    # Parent/
+    #   host1/
+    #       date-time.csv,
+    #   host2/
+    #       date-time.csv,
+    process {
+        Get-ChildItem -Path $_ | % {$_ | Get-ChildItem | Sort-Object | Select-Object -Last $Last}
+    }
+}

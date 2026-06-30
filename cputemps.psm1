@@ -7,10 +7,12 @@ function New-CpuTempChart {
     process {
         $min = ($_.data.Temp | Measure-Object -Minimum).Minimum
         $max = ($_.data.Temp | Measure-Object -Maximum).Maximum
+        $floor = [math]::Floor($min)
+        $Ceiling = [math]::Ceiling($max)
         Write-Host $_.Title
         $_.data | ForEach-Object {
-            $len = [math]::Round((($_.Temp - $min) / $(if (($max - $min) -eq 0) { 1 } else { $max - $min })) * $Width)
-            Write-Host ("{0} {1} {2}" -f ($_.Time.PadRight(8)), ("{0,5:N1}°C" -f $_.Temp), ('#' * $(if ($len -gt 0) { $len } else { 0 })))
+            $len = [math]::Round((($_.Temp - $floor) / $($Ceiling - $floor)) * $Width)
+            Write-Host ("{0} {1} {2}" -f ($_.Time.PadRight(8)), ("{0,5:N1}°C" -f $_.Temp), ('#' * $(if ($len -gt 0) { $len } else { 1 })))
         }
         Write-Host ("min {0:N1}°C   max {1:N1}°C" -f $min, $max)
     }
@@ -97,8 +99,9 @@ Filter Set-OrderByTemp {
     param(
         [int]$Limit
     )
+    # This also adds a unique filter because thats what I ruddy want
     process {
-        $_.data = $_.data | Sort-Object -Property Temp
+        $_.data = $_.data | Sort-Object -Property Temp -Unique
         if ($Limit) {
             $_.data = $_.data | select -last $limit
         }

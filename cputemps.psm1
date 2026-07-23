@@ -138,11 +138,12 @@ Function Move-HistoricData {
     )
     process {
         [System.Collections.Generic.HashSet[string]]$ParentCache=@()
-        Get-ChildItem -Path $Path | % {$_ | Get-ChildItem | Sort-Object | select -SkipLast $Last} | % {
+        Get-ChildItem -Path $Path | where {!$_.FullName.Contains("historic")} | % {$_ | Get-ChildItem | Sort-Object | select -SkipLast $Last} | % {
             $DestDirParent = join-path (join-path $Path "historic") ($_.FullName | Split-Path -Parent | Split-Path -Leaf)
-            if (!$ParentCache.Contains($DestDirParent) -and !(Test-Path $DestDirParent)) {
+            if (!$ParentCache.Contains($DestDirParent)) {
                 $ParentCache.Add($DestDirParent) | out-null
-                new-item -ItemType Directory -Path $DestDirParent -Force
+                # Actually much faster to just try and make it, but silently continue if it already exists (we won't lose anything if its already there)
+                new-item -ItemType Directory -Path $DestDirParent -ErrorAction SilentlyContinue
             }
             Move-item -Path $_.FullName -Destination $DestDirParent
         }

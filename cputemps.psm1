@@ -123,6 +123,28 @@ Function Get-HostData {
     #   host2/
     #       date-time.csv,
     process {
-        Get-ChildItem -Path $_ | % {$_ | Get-ChildItem | Sort-Object | Select-Object -Last $Last}
+        # If I ever call a host 'historic' I'll find this and hate myself (it would be a stupid name though, future me).
+        Get-ChildItem -Path $Path | where {!$_.FullName.Contains("historic")} | % {$_ | Get-ChildItem | Sort-Object | Select-Object -Last $Last}
+    }
+}
+
+# Basically just moves the dumping ground....
+# Will create a historic directory under the path you feed it. Assumes the same structure as above.
+Function Move-HistoricData {
+    [CmdletBinding()]
+    param(
+       [Parameter(Mandatory, ValueFromPipeline)][ValidateScript({ Test-Path $_ })][string]$Path,
+       [Parameter()][int]$Last=1  # Per discovered host
+    )
+    process {
+        [System.Collections.Generic.HashSet[string]]$ParentCache=@()
+        Get-ChildItem -Path $Path | % {$_ | Get-ChildItem | Sort-Object | select -SkipLast $Last} | % {
+            $DestDirParent = join-path (join-path $Path "historic") ($_.FullName | Split-Path -Parent | Split-Path -Leaf)
+            if (!$ParentCache.Contains($DestDirParent) -and !(Test-Path $DestDirParent)) {
+                $ParentCache.Add($DestDirParent) | out-null
+                new-item -ItemType Directory -Path $DestDirParent -Force
+            }
+            Move-item -Path $_.FullName -Destination $DestDirParent
+        }
     }
 }

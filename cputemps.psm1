@@ -95,17 +95,37 @@ function New-CpuChartItem {
 #     }
 # }
 
+Filter Set-OrderBy {
+    param(
+        [string]$Property,
+        [int]$limit,
+        [switch]$Unique
+    )
+    process {
+        $_.data = $_.data | Sort-Object -Property $Property -Unique:$Unique
+        if ($Limit) {
+            $_.data = $_.data | select -last $limit
+        }
+        $_
+    }
+}
+
 Filter Set-OrderByTemp {
     param(
         [int]$Limit
     )
     # This also adds a unique filter because thats what I ruddy want
     process {
-        $_.data = $_.data | Sort-Object -Property Temp -Unique
-        if ($Limit) {
-            $_.data = $_.data | select -last $limit
-        }
-        $_
+        $_ | Set-OrderBy -Property Temp -limit $Limit -Unique
+    }
+}
+
+Filter Set-OrderByTime {
+    param(
+        [int]$Limit
+    )
+    process {
+        $_ | Set-OrderBy -Property Time -limit $Limit
     }
 }
 

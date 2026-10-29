@@ -112,11 +112,11 @@ Filter Set-OrderBy {
 
 Filter Set-OrderByTemp {
     param(
-        [int]$Limit
+        [int]$Limit,
+        [switch]$Unique
     )
-    # This also adds a unique filter because thats what I ruddy want
     process {
-        $_ | Set-OrderBy -Property Temp -limit $Limit -Unique
+        $_ | Set-OrderBy -Property Temp -limit $Limit -Unique:$Unique
     }
 }
 
